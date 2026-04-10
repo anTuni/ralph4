@@ -116,13 +116,19 @@ export default function Home() {
                   if (p.type === "text") {
                     return <span key={i}>{p.text}</span>;
                   }
-                  if (p.type === "tool-invocation") {
+                  if (p.type.startsWith("tool-")) {
+                    const toolName = "toolName" in p ? (p as Record<string, unknown>).toolName as string : "";
+                    const labels: Record<string, string> = {
+                      searchNearbyStores: "매장 검색 중...",
+                      searchProducts: "상품 검색 중...",
+                      checkInventory: "재고 확인 중...",
+                      findAlternatives: "쿠팡 검색 중...",
+                    };
+                    const label = labels[toolName];
+                    if (!label) return null;
                     return (
                       <span key={i} className="text-xs text-gray-400 block my-1">
-                        🔍 {p.toolInvocation.toolName === "searchNearbyStores" && "매장 검색 중..."}
-                        {p.toolInvocation.toolName === "searchProducts" && "상품 검색 중..."}
-                        {p.toolInvocation.toolName === "checkInventory" && "재고 확인 중..."}
-                        {p.toolInvocation.toolName === "findAlternatives" && "쿠팡 검색 중..."}
+                        🔍 {label}
                       </span>
                     );
                   }

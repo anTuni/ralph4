@@ -50,7 +50,10 @@ export default function Home() {
       requestLocation();
     }
 
-    sendMessage({ text });
+    const locationPrefix = location
+      ? `[사용자 현재 위치: 위도 ${location.lat}, 경도 ${location.lng}] `
+      : "";
+    sendMessage({ text: locationPrefix + text });
     setInputValue("");
   };
 

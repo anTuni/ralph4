@@ -1,12 +1,8 @@
 import { tool } from "ai";
 import { z } from "zod";
-import {
-  searchStores,
-  searchProducts,
-  checkInventory,
-  distanceBetween,
-} from "./daiso";
+import { searchProducts, checkInventory } from "./daiso";
 import { searchCoupangProducts } from "./coupang";
+import { findNearbyStores } from "./stores";
 
 export const daisoTools = {
   searchNearbyStores: tool({
@@ -25,34 +21,21 @@ export const daisoTools = {
         .describe("사용자의 경도 (한국 범위: 124-132)"),
     }),
     execute: async ({ lat, lng }) => {
-      try {
-        const stores = await searchStores("");
-        if (!stores.length) {
-          return { stores: [], message: "근처에 다이소 매장을 찾을 수 없습니다." };
-        }
-
-        const sorted = stores
-          .map((s) => ({
-            storeId: s.strCd,
-            name: s.strNm,
-            address: s.strAddr,
-            distance: Math.round(
-              distanceBetween(lat, lng, s.strLttd, s.strLitd) * 1000
-            ),
-            openTime: s.opngTime,
-            closeTime: s.clsngTime,
-            pickupAvailable: s.pkupYn === "Y",
-          }))
-          .sort((a, b) => a.distance - b.distance)
-          .slice(0, 3);
-
-        return { stores: sorted };
-      } catch {
-        return {
-          stores: [],
-          error: "다이소 매장 검색에 실패했습니다. 잠시 후 다시 시도해주세요.",
-        };
+      const nearby = findNearbyStores(lat, lng, 3);
+      if (!nearby.length) {
+        return { stores: [], message: "근처에 다이소 매장을 찾을 수 없습니다." };
       }
+
+      return {
+        stores: nearby.map((s) => ({
+          storeId: s.strCd,
+          name: s.name,
+          address: s.addr,
+          distance: s.distance,
+          openTime: s.open,
+          closeTime: s.close,
+        })),
+      };
     },
   }),
 
